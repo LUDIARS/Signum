@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "signum"
+version = "0.1.0"
+description = "Trace the outlines of raster images and emit SVG data."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+dependencies = [
+    "Pillow>=9.0",
+    "numpy>=1.22",
+]
+
+[project.scripts]
+signum = "signum.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
