@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/*
+ * Foundation design tokens — shared with Ars / Schedula / Cernere.
+ * RULE_TECH_STACK.md §Foundation: single :root block defines the dark
+ * theme palette all LUDIARS web frontends inherit.
+ */
+:root {
+    color-scheme: dark;
+
+    /* Backgrounds (layer 0 … 2) */
+    --bg:             #0f1116;
+    --bg-surface:     #171a22;
+    --bg-surface-2:   #1f232e;
+
+    /* Text */
+    --text:           #e6ecf5;
+    --text-muted:     #8a93a8;
+
+    /* Border */
+    --border:         #2a3144;
+
+    /* Accent */
+    --accent:         #5eb2ff;
+    --accent-hover:   #7ec0ff;
+
+    /* Semantic */
+    --green:          #7ddba2;
+    --orange:         #ff8a5c;
+    --red:            #e66060;
+    --purple:         #d199ff;
+    --pink:           #ff7aa8;
+
+    --radius:         8px;
+    --radius-sm:      4px;
+}
+
+html, body, #root { height: 100%; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); }
+
+/* Mobile-first tap target (RULE_TECH_STACK.md §Foundation / モバイル対応) */
+button, a.btn {
+    min-height: 44px;
+}
+
+@media (max-width: 767px) {
+    /* Portrait phone layout hook — pages opt in via the `.mobile-stack` class
+       so desktop layouts stay untouched by default. */
+    .mobile-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+}
