@@ -7,8 +7,9 @@ LUDIARS の Web サービス基盤 (AIFormat 準拠)。
 - サーバー: **Node 22 + Hono + Drizzle + PostgreSQL + Redis** (RULE_TECH_STACK.md)
 - フロント: **React 19 + Vite + React Router 7 + Tailwind 4** (Foundation デザイントークン)
 
-このリポジトリは **Web 基底処理のみ** を含む。ドメイン機能 (Signum の
-意味するもの) は後続 PR で `spec/` と `src/routes/` に追加していく。
+Signum のドメイン機能は画像のアウトライン解析 → SVG 生成。
+最初のマイルストーンとして `POST /api/trace` を実装している
+(「外観だけ」から「模様まで」を `detail` スライダーで連続的に切り替え)。
 
 ## ディレクトリ
 
@@ -21,7 +22,8 @@ signum/
 │   ├── auth/               # Cernere Tool Client / user-info cache
 │   ├── db/                 # Drizzle schema / repository / migrate
 │   ├── middleware/         # request-id / auth / audit
-│   ├── routes/             # /api/health, /api/me
+│   ├── domain/             # image decode / tracer (純関数)
+│   ├── routes/             # /api/health, /api/me, /api/trace
 │   └── ws/                 # session + hub (RULE.md §1.2)
 ├── frontend/               # SPA
 │   ├── src/
@@ -73,11 +75,43 @@ npm run env:up:standalone  # + signum-db / signum-redis
 | `GET /api/health/version` | バージョン + uptime               |
 | `GET /api/me`             | Cernere resolved ユーザー情報     |
 
+## ドメイン API
+
+### `POST /api/trace`
+
+画像 (PNG) のアウトラインを解析して SVG として返す。`detail` パラメータ
+(`0.0` 〜 `1.0`) で、外観だけのシルエットから内部の模様までを
+グラデーションで切り替える。
+
+- **Request**
+  - `Content-Type: image/png`
+  - body: PNG バイト列 (最大 16 MiB)
+  - query (任意):
+    - `detail` 0.0 (外観のみ) 〜 1.0 (模様まで) / 既定 `0.5`
+    - `stroke` 線の色 / 既定 `#000000`
+    - `strokeWidth` 線幅 / 既定 `1.0`
+    - `background` 背景色 (未指定なら透明)
+    - `minContourLength` これより短い輪郭は破棄 / 既定 `2`
+- **Response**: `200 image/svg+xml` (生成された SVG)
+- **Errors**: `400` 未対応フォーマット / 空 body / 不正パラメータ, `413` 大きすぎる body
+
+```bash
+curl -sS -X POST \
+  -H "Content-Type: image/png" \
+  -H "X-User-Id: dev" \
+  --data-binary @photo.png \
+  "http://localhost:3200/api/trace?detail=0.3&background=white" \
+  > photo.svg
+```
+
+実装は `src/domain/tracer.ts` (純関数) + `src/domain/image.ts`
+(pngjs による PNG デコード) + `src/routes/trace.ts` (Hono ルート)。
+`src/domain/` はドメインロジックを副作用から切り離し、Hono 非依存の
+vitest テストを `tests/tracer.test.ts` に置く。
+
 ## 次のステップ
 
-1. Signum のドメイン仕様を `spec/` にまとめる (FORMAT_SPEC.md 参照)
-2. Cernere に Tool Client を発行し、`TOOL_CLIENT_ID/SECRET` を
-   Infisical 経由でセット (`npm run env:set`)
-3. `src/routes/` にモジュールルートを追加
-4. `migrations/002_*.sql` を追加 (DROP 禁止 / IF NOT EXISTS)
-5. `frontend/src/pages/` に画面を追加し、`App.tsx` の Router へ配線
+1. JPEG / WebP デコーダ対応 (`decodeToGrayscale` の拡張)
+2. `spec/web/` に `/api/trace` の OpenAPI 記述を追加
+3. `frontend/src/pages/` にアップロード画面 + `detail` スライダー UI
+4. `migrations/002_*.sql` でトレース履歴テーブル (必要なら / RULE §5 遵守)

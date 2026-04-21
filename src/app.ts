@@ -17,6 +17,7 @@ import { authMiddleware, requireAuth } from "./middleware/auth.js";
 import { requestIdMiddleware } from "./middleware/request-id.js";
 import { registerHealthRoutes } from "./routes/health.js";
 import { meRoutes } from "./routes/me.js";
+import { traceRoutes } from "./routes/trace.js";
 
 export function createApp(): Hono {
     const app = new Hono();
@@ -46,6 +47,7 @@ export function createApp(): Hono {
     api.use("*", authMiddleware());
     api.use("*", requireAuth());
     api.route("/me", meRoutes());
+    api.route("/trace", traceRoutes());
 
     app.route("/api", api);
 

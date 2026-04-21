@@ -10,7 +10,8 @@
 | `auth/`           | Cernere Tool Client 認証 (`cernere-client.ts`) / user-info キャッシュ (`user-info.ts`) |
 | `db/`             | Drizzle schema / connection / repository / migrate / Redis クライアント        |
 | `middleware/`     | `request-id` / `auth` (id-cache + dev fallback) / `audit`                   |
-| `routes/`         | `/api/health`, `/api/me` 等 Hono サブアプリ (機能追加時はここに)              |
+| `domain/`         | 画像デコード (`image.ts`) / SVG トレーサ (`tracer.ts`) — 純関数 (I/O 非依存)   |
+| `routes/`         | `/api/health`, `/api/me`, `/api/trace` 等 Hono サブアプリ (機能追加時はここに) |
 | `ws/`             | `session.ts` (hello / ping / module_request) + `hub.ts` (relay)              |
 | `app.ts`          | Hono 合成ルート (middleware 順序を一元管理)                                  |
 | `index.ts`        | エントリポイント: HTTP/WS サーバ起動 + signal ハンドラ                        |
