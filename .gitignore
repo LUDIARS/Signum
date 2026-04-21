@@ -1,7 +1,21 @@
-__pycache__/
-*.py[cod]
-*.egg-info/
-.pytest_cache/
-build/
+node_modules/
 dist/
-.venv/
+.env
+.env.*
+!.env.example
+
+# build / tsc
+*.tsbuildinfo
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# logs
+logs/
+*.log
+
+# coverage
+coverage/

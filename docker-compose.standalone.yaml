@@ -1,0 +1,43 @@
+# Overlay for all-in-one runs. Combine with docker-compose.yaml:
+#   docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml up -d
+#
+# Adds self-contained Postgres + Redis so Signum can be exercised
+# without LUDIARS/Infra.
+
+services:
+  signum-db:
+    image: postgres:17-alpine
+    container_name: signum-db
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB:       ${POSTGRES_DB:-signum}
+    volumes:
+      - signum-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout:  3s
+      retries:  5
+    networks: [signum-net]
+
+  signum-redis:
+    image: redis:7-alpine
+    container_name: signum-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout:  3s
+      retries:  5
+    networks: [signum-net]
+
+  signum-api:
+    environment:
+      SIGNUM_DATABASE_URL: "postgresql://postgres:postgres@signum-db:5432/signum"
+      SIGNUM_REDIS_URL:    "redis://signum-redis:6379/4"
+    depends_on:
+      signum-db:    { condition: service_healthy }
+      signum-redis: { condition: service_healthy }
+
+volumes:
+  signum-db-data: {}

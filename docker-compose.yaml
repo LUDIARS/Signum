@@ -1,0 +1,41 @@
+services:
+  signum-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: signum-api
+    ports:
+      - "${SIGNUM_PORT:-3200}:3200"
+    environment:
+      NODE_ENV:             ${NODE_ENV:-production}
+      SIGNUM_PORT:          "3200"
+      CERNERE_URL:          ${CERNERE_URL}
+      JWT_SECRET:           ${JWT_SECRET}
+      TOOL_CLIENT_ID:       ${TOOL_CLIENT_ID:-}
+      TOOL_CLIENT_SECRET:   ${TOOL_CLIENT_SECRET:-}
+      SIGNUM_DATABASE_URL:  ${SIGNUM_DATABASE_URL}
+      SIGNUM_REDIS_URL:     ${SIGNUM_REDIS_URL}
+    depends_on: []
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3200/api/health/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks: [signum-net]
+
+  signum-web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: signum-web
+    ports:
+      - "${SIGNUM_WEB_PORT:-8083}:80"
+    depends_on:
+      - signum-api
+    restart: unless-stopped
+    networks: [signum-net]
+
+networks:
+  signum-net:
+    driver: bridge
